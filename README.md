@@ -1,4 +1,4 @@
-# claude-mods
+# awesome-claude-mods
 
 Two small mods for [Claude Code](https://claude.com/claude-code) that make it calmer and easier to use, especially if you are not a developer.
 
@@ -12,8 +12,8 @@ Two small mods for [Claude Code](https://claude.com/claude-code) that make it ca
 Install what you want, straight from this repository:
 
 ```
-/plugin install prompt-upgrade --marketplace Hardikkhanesa/claude-mods
-/plugin install clean-view --marketplace Hardikkhanesa/claude-mods
+/plugin install prompt-upgrade --marketplace Hardikkhanesa/awesome-claude-mods
+/plugin install clean-view --marketplace Hardikkhanesa/awesome-claude-mods
 ```
 
 Run `/reload-plugins` if the commands do not show up right away.
@@ -21,7 +21,7 @@ Run `/reload-plugins` if the commands do not show up right away.
 To install from a local clone instead:
 
 ```
-claude plugin marketplace add ./claude-mods
+claude plugin marketplace add ./awesome-claude-mods
 /plugin install prompt-upgrade --marketplace hardik-mods
 ```
 
@@ -98,3 +98,7 @@ claude plugin test ./prompt-upgrade
 ```
 
 The preview pages are in `docs/preview/`. Open one in a browser and take a screenshot to refresh an image.
+
+## License
+
+[MIT](LICENSE)
