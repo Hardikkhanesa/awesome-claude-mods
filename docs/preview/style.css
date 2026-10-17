@@ -1,0 +1,32 @@
+:root{--bg:#0F1117;--win:#14171F;--edge:#3B4252;--text:#E6E9EF;--muted:#7A8394;--violet:#A78BFA;--cyan:#4FD1E8;--green:#34D399;--amber:#FBBF24;--rose:#FB7185;--ink:#0B0F17}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);padding:36px;font:15px/1.5 "SF Mono",Menlo,Consolas,monospace;color:var(--text);width:max-content}
+.win{width:880px;background:var(--win);border:1px solid #262B36;border-radius:12px;box-shadow:0 24px 60px #0008;overflow:hidden}
+.bar{display:flex;gap:8px;padding:12px 16px;background:#1A1E28;border-bottom:1px solid #262B36;align-items:center}
+.bar i{width:12px;height:12px;border-radius:50%;background:#FF5F57}.bar i:nth-child(2){background:#FEBC2E}.bar i:nth-child(3){background:#28C840}
+.bar span{margin-left:12px;color:var(--muted);font-size:12px}
+.pane{padding:18px 22px 22px;display:flex;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{background:var(--violet);color:var(--ink);font-weight:700;padding:1px 10px;border-radius:3px}
+.badge.g{background:var(--green)}.badge.c{background:var(--cyan)}.badge.r{background:var(--rose)}
+.m{color:var(--muted)}.v{color:var(--violet)}.c{color:var(--cyan)}.g{color:var(--green)}.r{color:var(--rose)}.b{font-weight:700}
+.rule{height:2px;background:var(--edge);border-radius:1px}
+.sep{color:var(--edge)}
+.head{display:flex;gap:10px;align-items:center;color:var(--violet);font-weight:700;font-size:13px}
+.head:after{content:"";flex:1;height:1px;background:var(--edge)}
+.box{border:1.5px solid var(--edge);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.box.g{border-color:var(--green)}.box.c{border-color:var(--cyan)}.box.v{border-color:var(--violet)}.box.r{border-color:var(--rose)}
+.btn{border:1px solid var(--edge);border-radius:4px;padding:1px 12px;color:var(--text)}
+.btn.p{background:var(--violet);border-color:var(--violet);color:var(--ink);font-weight:700}
+.btn.s{background:#2A2F3B;border-color:var(--violet);color:var(--text)}
+.btn.plain{border-color:transparent;color:var(--muted)}
+.tiles{display:flex;gap:12px}.tile{flex:1;border:1.5px solid;border-radius:8px;padding:6px 14px}
+.tile pre{font:inherit;font-weight:700;line-height:1.2}.tile small{color:var(--muted);font-size:13px}
+.cols{display:flex;gap:12px}.cols>.box{flex:1}
+p{white-space:pre-wrap}
+.plus{color:var(--green);font-weight:700}
+.meter{letter-spacing:0}
+.badge.c,.badge.g,.badge.r,.badge.v{color:var(--ink)}
+.tile pre{line-height:1.15}
+pre.cv{font:inherit;line-height:1.6;white-space:pre}
+.num{font-size:40px;font-weight:700;line-height:1.1}
