@@ -28,14 +28,17 @@ const flowRef = atom({ plugin: 'prompt-upgrade', key: 'flow' } as const, null as
 const autoRef = atom({ plugin: 'prompt-upgrade', key: 'auto' } as const, false)
 const historyRef = atom({ plugin: 'prompt-upgrade', key: 'history' } as const, [] as HistoryEntry[])
 
-// The palette of the look: gold for the current step and the upgrade, green for done, amber for warnings.
-const GOLD = '#F2C46D'
-const HAIR = '#262B33'
-const MUTED = '#7D8590'
-const TEXT = '#E6EDF3'
-const GREEN = '#3DD68C'
-const AMBER = '#E3B341'
-const DARK = '#0D1117'
+// The palette of the look: violet is the upgrade and the current step, cyan is the person's own words,
+// green is done and added, amber is a warning, rose is an error. Text and muted follow the person's theme.
+const VIOLET = '#A78BFA'
+const CYAN = '#4FD1E8'
+const GREEN = '#34D399'
+const AMBER = '#FBBF24'
+const ROSE = '#FB7185'
+const EDGE = '#3B4252'
+const INK = '#0B0F17'
+const TEXT = 'text'
+const MUTED = 'inactive'
 
 function freshFlow(original: string, seq: number, stage: Flow['stage'] = 'reading'): Flow {
   return {
@@ -303,17 +306,17 @@ export function registerPromptUpgrade(on: On) {
     const history = await read($, historyRef)
     const { stage, original, questions, answers, upgraded, added, isEditing, draft, errorText } = flow
     const step = stepStates(stepIndex(stage, flow.errorStep))
-    const tracker = STEP_LABELS.map((label, index) => {
-      const state = step[index]
-      const mark = state === 'done' ? '✓ ' : state === 'current' ? '● ' : '○ '
-      return { label: mark + label, state }
-    })
     const trackerFits = width >= 60
-    const titleWidth = Math.min('PROMPT UPGRADE'.length, width)
 
-    const card = (title: string, body: string, isGold: boolean) => (
-      <Box flexDirection="column" borderStyle="round" borderColor={isGold ? GOLD : HAIR} paddingX={1} flexGrow={1}>
-        <Text color={isGold ? GOLD : MUTED}>{title}</Text>
+    // A filled label: dark ink on a colored block, the one shape every badge in the pane shares.
+    const badge = (label: string, color: string) => (
+      <Text bold color={INK} backgroundColor={color}>{` ${label} `}</Text>
+    )
+
+    // A bordered block with a badge for its title; the border takes the badge's color.
+    const card = (title: string, body: string, color: string) => (
+      <Box flexDirection="column" borderStyle="round" borderColor={color} paddingX={1} flexGrow={1}>
+        <Box flexDirection="row">{badge(title, color)}</Box>
         <Text color={TEXT}>{body}</Text>
       </Box>
     )
@@ -331,35 +334,44 @@ export function registerPromptUpgrade(on: On) {
         </Box>
       )
 
-    const heading = (label: string) => (
-      <Box flexDirection="column">
-        <Text color={MUTED}>{label}</Text>
-        <Text color={HAIR}>{'─'.repeat(width)}</Text>
+    const heading = (label: string, color: string = VIOLET) => (
+      <Box flexDirection="row" gap={1}>
+        <Text bold color={color}>{label}</Text>
+        <Text color={EDGE}>{'─'.repeat(Math.max(0, width - label.length - 1))}</Text>
       </Box>
     )
 
+    const hint = (text: string) => <Text color={MUTED}>{fit(text, width)}</Text>
+
     const header = (
       <Box flexDirection="column">
-        <Text bold color={TEXT}>{'PROMPT UPGRADE'.slice(0, titleWidth)}</Text>
-        <Box flexDirection="row">
-          <Text color={GOLD}>{'━'.repeat(titleWidth)}</Text>
-          <Text color={HAIR}>{'─'.repeat(Math.max(0, width - titleWidth))}</Text>
+        <Box flexDirection="row" gap={1}>
+          {badge('✦ PROMPT UPGRADE', VIOLET)}
+          <Text color={MUTED}>{fit('rough words in, a clear prompt out', Math.max(0, width - 20))}</Text>
         </Box>
         {trackerFits ? (
           <Box flexDirection="row">
-            {tracker.map((item, index) => (
-              <Text
-                key={item.label}
-                bold={item.state === 'current'}
-                color={item.state === 'done' ? GREEN : item.state === 'current' ? GOLD : MUTED}
-              >
-                {item.label + (index < tracker.length - 1 ? '  ›  ' : '')}
-              </Text>
-            ))}
+            {STEP_LABELS.map((label, index) => {
+              const state = step[index]
+              const connector = index < STEP_LABELS.length - 1 ? ' ── ' : ''
+              return (
+                <Box key={label} flexDirection="row">
+                  {state === 'current' ? (
+                    badge(label, VIOLET)
+                  ) : (
+                    <Text color={state === 'done' ? GREEN : MUTED}>{(state === 'done' ? '✓ ' : '○ ') + label}</Text>
+                  )}
+                  <Text color={state === 'done' ? GREEN : EDGE}>{connector}</Text>
+                </Box>
+              )
+            })}
           </Box>
         ) : (
-          <Text color={GOLD}>{fit(tracker.map(item => item.label).join(' › '), width)}</Text>
+          <Text color={VIOLET}>
+            {fit(STEP_LABELS.map((label, index) => (step[index] === 'current' ? `[${label}]` : label)).join(' › '), width)}
+          </Text>
         )}
+        <Text color={EDGE}>{'━'.repeat(width)}</Text>
       </Box>
     )
 
@@ -370,7 +382,7 @@ export function registerPromptUpgrade(on: On) {
     if (stage === 'input') {
       body = (
         <Box flexDirection="column">
-          {heading('YOUR PROMPT')}
+          {heading('YOUR PROMPT', CYAN)}
           <Input
             key="rough"
             placeholder="Describe what you want in plain words"
@@ -394,14 +406,14 @@ export function registerPromptUpgrade(on: On) {
             />
             {cancelButton}
           </Box>
+          {hint('Enter upgrades · Esc closes')}
         </Box>
       )
     } else if (stage === 'reading' || stage === 'rewriting') {
       body = (
         <Box flexDirection="column">
-          {heading('YOUR PROMPT')}
-          {card('Your words', original, false)}
-          <Text color={MUTED}>{stage === 'reading' ? 'Reading your prompt…' : 'Writing your upgrade…'}</Text>
+          {card('YOUR WORDS', original, CYAN)}
+          <Text color={VIOLET}>{stage === 'reading' ? '◌ Reading your prompt…' : '◌ Writing your upgrade…'}</Text>
           <Box flexDirection="row">{cancelButton}</Box>
         </Box>
       )
@@ -410,21 +422,21 @@ export function registerPromptUpgrade(on: On) {
       const allAnswered = answered === questions.length
       body = (
         <Box flexDirection="column">
-          <Text color={MUTED}>{fit('Your prompt: ' + original.replace(/\s+/g, ' '), width)}</Text>
+          <Text color={CYAN}>{fit('Your prompt: ' + original.replace(/\s+/g, ' '), width)}</Text>
           {heading('QUESTIONS')}
           {questions.map((question, index) => {
             const answer = answers[question.id]
             return (
-              <Box key={question.id} flexDirection="column">
+              <Box
+                key={question.id}
+                flexDirection="column"
+                borderStyle="round"
+                borderColor={answer ? GREEN : EDGE}
+                paddingX={1}
+              >
                 <Box flexDirection="row">
-                  <Text
-                    bold
-                    color={DARK}
-                    backgroundColor={answer ? GREEN : GOLD}
-                  >
-                    {answer ? ' ✓ ' : ` ${index + 1} `}
-                  </Text>
-                  <Text color={TEXT}>{' ' + question.question}</Text>
+                  {badge(answer ? '✓' : String(index + 1), answer ? GREEN : VIOLET)}
+                  <Text bold color={TEXT}>{' ' + question.question}</Text>
                 </Box>
                 <Box flexDirection="row" flexWrap="wrap" gap={1}>
                   {question.options.map((option, optionIndex) => (
@@ -461,7 +473,7 @@ export function registerPromptUpgrade(on: On) {
               </Box>
             )
           })}
-          <Text color={MUTED}>{`${answered} of ${questions.length} answered`}</Text>
+          <Text color={allAnswered ? GREEN : MUTED}>{`${answered} of ${questions.length} answered`}</Text>
           <Box flexDirection="row" gap={1}>
             <Button
               key="proceed"
@@ -482,21 +494,21 @@ export function registerPromptUpgrade(on: On) {
     } else if (stage === 'review' && upgraded !== null) {
       const runText = isEditing && draft !== null ? draft : upgraded
       const numbers = reviewNumbers(original, runText, added.length)
-      const numberTiles: Array<[number, string]> = [
-        [numbers.before, 'words before'],
-        [numbers.after, 'words after'],
-        [numbers.added, 'details added'],
+      const numberTiles: Array<[number, string, string]> = [
+        [numbers.before, 'words before', CYAN],
+        [numbers.after, 'words after', VIOLET],
+        [numbers.added, 'details added', GREEN],
       ]
       body = (
         <Box flexDirection="column">
           {width >= 48 ? (
             <Box flexDirection="row" gap={1}>
-              {numberTiles.map(([value, label]) => {
+              {numberTiles.map(([value, label, color]) => {
                 const rows = bigNumber(value)
                 return (
-                  <Box key={label} flexDirection="column" borderStyle="round" borderColor={HAIR} paddingX={1}>
+                  <Box key={label} flexDirection="column" borderStyle="round" borderColor={color} paddingX={1}>
                     {rows.map((row, rowIndex) => (
-                      <Text key={String(rowIndex)} color={TEXT}>{row}</Text>
+                      <Text key={String(rowIndex)} bold color={color}>{row}</Text>
                     ))}
                     <Text color={MUTED}>{label}</Text>
                   </Box>
@@ -504,7 +516,7 @@ export function registerPromptUpgrade(on: On) {
               })}
             </Box>
           ) : (
-            <Text color={TEXT}>
+            <Text color={VIOLET}>
               {fit(`${numbers.before} → ${numbers.after} words · ${numbers.added} details added`, width)}
             </Text>
           )}
@@ -552,24 +564,29 @@ export function registerPromptUpgrade(on: On) {
           ) : null}
           {added.length > 0 ? (
             <Box flexDirection="column">
-              {heading('WHAT I ADDED')}
+              {heading('WHAT I ADDED', GREEN)}
               {added.map((item, index) => (
-                <Text key={String(index)} color={TEXT}>{fit(`· ${item}`, width)}</Text>
+                <Box key={String(index)} flexDirection="row">
+                  <Text bold color={GREEN}>+ </Text>
+                  <Text color={TEXT}>{fit(item, Math.max(10, width - 2))}</Text>
+                </Box>
               ))}
             </Box>
           ) : null}
-          {sideBySide(
-            card('Your prompt', original, false),
-            card('Upgrade', runText, true),
-          )}
+          {sideBySide(card('YOUR PROMPT', original, CYAN), card('✦ UPGRADE', runText, VIOLET))}
         </Box>
       )
     } else if (stage === 'error') {
       body = (
         <Box flexDirection="column">
-          <Text color={MUTED}>{fit('Your prompt: ' + original.replace(/\s+/g, ' '), width)}</Text>
-          <Text color={AMBER}>Something went wrong. Your prompt is safe.</Text>
-          {errorText ? <Text color={MUTED}>{errorText}</Text> : null}
+          <Text color={CYAN}>{fit('Your prompt: ' + original.replace(/\s+/g, ' '), width)}</Text>
+          <Box flexDirection="column" borderStyle="round" borderColor={ROSE} paddingX={1}>
+            <Box flexDirection="row">
+              {badge('!', ROSE)}
+              <Text bold color={ROSE}>{' Something went wrong. Your prompt is safe.'}</Text>
+            </Box>
+            {errorText ? <Text color={MUTED}>{errorText}</Text> : null}
+          </Box>
           <Box flexDirection="row" gap={1}>
             <Button key="retry" variant="primary" label="Try again" onPress={() => retryStep($)} />
             <Button
