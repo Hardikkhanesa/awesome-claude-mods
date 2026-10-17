@@ -1,0 +1,8 @@
+{
+  "name": "hardik-mods",
+  "owner": { "name": "hardik" },
+  "plugins": [
+    { "name": "prompt-upgrade", "source": "./prompt-upgrade", "description": "Turns a rough prompt into a clear one in a review pane before it is sent." },
+    { "name": "clean-view", "source": "./clean-view", "description": "A calm checklist above the prompt that hides tool rows." }
+  ]
+}
